@@ -1,8 +1,21 @@
 import SwiftUI
 
 struct BEGINNINGOFCOURSE: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
     @State private var whisperName = ""
     @State private var ledgerBody = ""
+    @State private var tagEcho = "仕事"
+    @State private var echoLinks: [String] = []
+    @State private var didLoad = false
+    @State private var planShown = false
+
+    private let markStack = [
+        ("仕事", "💼"),
+        ("趣味", "🎨"),
+        ("旅行", "✈️"),
+        ("グルメ", "🍜")
+    ]
 
     var body: some View {
         ZStack {
@@ -19,6 +32,7 @@ struct BEGINNINGOFCOURSE: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -49,10 +63,13 @@ struct BEGINNINGOFCOURSE: View {
 
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 10) {
-                                    MurmurToken(whisperLabel: "仕事", memoGlyph: "💼", echoChosen: true)
-                                    MurmurToken(whisperLabel: "趣味", memoGlyph: "🎨", echoChosen: false)
-                                    MurmurToken(whisperLabel: "旅行", memoGlyph: "✈️", echoChosen: false)
-                                    MurmurToken(whisperLabel: "グルメ", memoGlyph: "🍜", echoChosen: false)
+                                    ForEach(markStack, id: \.0) { threadPair in
+                                        Button {
+                                            tagEcho = threadPair.0
+                                        } label: {
+                                            MurmurToken(whisperLabel: threadPair.0, glyphEcho: threadPair.1, echoChosen: tagEcho == threadPair.0)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -110,9 +127,18 @@ struct BEGINNINGOFCOURSE: View {
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(.white)
 
-                            VoiceRibbon(whisperName: "さいとう りょうた", echoMinus: true)
+                            ForEach(ThreadWeave.sharedLedger.whisperStack().filter { echoLinks.contains($0.echoInk) }, id: \.echoInk) { whisperShade in
+                                Button {
+                                    echoLinks.removeAll { $0 == whisperShade.echoInk }
+                                } label: {
+                                    WhisperRibbon(whisperName: whisperShade.aliasEcho, badgeWhisper: whisperShade.badgeWhisper, echoMinus: true)
+                                }
+                            }
 
                             Button {
+                                withAnimation(.easeOut(duration: 0.12)) {
+                                    planShown = true
+                                }
                             } label: {
                                 Image(systemName: "plus")
                                     .font(.system(size: 22, weight: .regular))
@@ -134,8 +160,9 @@ struct BEGINNINGOFCOURSE: View {
                     .padding(.bottom, 24)
                     
                     Button {
+                        saveNotePetal()
                     } label: {
-                        Text("プロジェクトを作成する")
+                        Text(ThreadWeave.sharedLedger.threadFocus() == nil ? "プロジェクトを作成する" : "保存")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -158,6 +185,43 @@ struct BEGINNINGOFCOURSE: View {
             }
             .padding(.horizontal, 20)
            
+            if planShown {
+                MONOLOGUEPLAN(threadLinks: $echoLinks) {
+                    planShown = false
+                }
+            }
+        }
+        .threadQuiet()
+        .onAppear {
+            loadNotePetal()
+        }
+    }
+
+    private func loadNotePetal() {
+        guard didLoad == false else { return }
+        didLoad = true
+
+        guard let threadPetal = ThreadWeave.sharedLedger.threadFocus() else {
+            echoLinks = []
+            return
+        }
+
+        whisperName = threadPetal.pageWhisper
+        ledgerBody = threadPetal.lineThread
+        tagEcho = threadPetal.tagEcho
+        echoLinks = threadPetal.echoLinks
+    }
+
+    private func saveNotePetal() {
+        guard whisperName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false,
+              ledgerBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+            signalRipple.noteBloom("入力してください", noteShade: .warnTone)
+            return
+        }
+
+        signalRipple.holdEcho(ThreadWeave.sharedLedger.threadFocus() == nil ? "作成中" : "保存中") {
+            ThreadWeave.sharedLedger.threadFold(pageWhisper: whisperName, lineThread: ledgerBody, tagEcho: tagEcho, echoLinks: echoLinks)
+            threadRouter.replaceThread(.LIVINGROOMMIDDLE)
         }
     }
 }

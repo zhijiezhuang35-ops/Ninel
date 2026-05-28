@@ -1,13 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct AGGRESSIVELINES: View {
-    private let ledgerBody = """
-事前にルートを計画しましょう。ハイキングを始める前に、コースの詳細を調べ、難易度や距離、予想される天候を確認してください。無線通信がない場合は、地図をダウンロードするか、紙の地図を持参しましょう。
-2. 正しい装備を着用する
-快適で、慣れてきたハイキングブーツや靴を選ぶ。温度の変化に合わせて調節できるよう、重ね着をして服装を整え、湿気を吸収する衣類を着ることで乾燥を保つ。
-3. 必要品を準備する
-常に十分な水、おやつ、救急キット、日焼け止め、懐中電灯またはヘッドランプ、マルチツールやナイフ、緊急用ホイッスルを持参しましょう。レインジャケットやポンチョも便利です。
-"""
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
+    let ledgerBody: String
 
     var body: some View {
         ZStack {
@@ -24,6 +21,7 @@ struct AGGRESSIVELINES: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.replaceThread(.LIVINGROOMMIDDLE)
                     } label: {
                         Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -63,6 +61,8 @@ struct AGGRESSIVELINES: View {
                 Spacer(minLength: 0)
 
                 Button {
+                    UIPasteboard.general.string = ledgerBody
+                    signalRipple.noteBloom("コピーしました")
                 } label: {
                     Text("コピー")
                         .font(.system(size: 16, weight: .bold))

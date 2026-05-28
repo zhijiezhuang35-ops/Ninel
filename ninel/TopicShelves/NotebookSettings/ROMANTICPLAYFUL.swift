@@ -1,9 +1,12 @@
 import SwiftUI
 
 struct ROMANTICPLAYFUL: View {
+    var cancelBeat: () -> Void = {}
+    var chargeBeat: () -> Void = {}
+
     var body: some View {
         ZStack {
-            Color.black
+            Color.black.opacity(0.54)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -25,6 +28,7 @@ struct ROMANTICPLAYFUL: View {
 
                     HStack(spacing: 15) {
                         Button {
+                            cancelBeat()
                         } label: {
                             Text("キャンセル")
                                 .font(.system(size: 16, weight: .bold))
@@ -40,6 +44,7 @@ struct ROMANTICPLAYFUL: View {
                         }
 
                         Button {
+                            chargeBeat()
                         } label: {
                             Text("チャージする")
                                 .font(.system(size: 16, weight: .bold))

@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct EMOTIONALGESTURE: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @State private var threadPetal = ThreadWeave.sharedLedger.threadFocus()
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -16,6 +19,7 @@ struct EMOTIONALGESTURE: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -28,6 +32,10 @@ struct EMOTIONALGESTURE: View {
                     Spacer()
 
                     Button {
+                        if let threadPetal {
+                            ThreadWeave.sharedLedger.threadAnchor(threadPetal.pageInk)
+                        }
+                        threadRouter.pushThread(.BEGINNINGOFCOURSE)
                     } label: {
                         Text("編集")
                             .font(.system(size: 18, weight: .medium))
@@ -36,11 +44,11 @@ struct EMOTIONALGESTURE: View {
                 }
 
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("新プロジェクトの計画")
+                    Text(threadPetal?.pageWhisper ?? "入力してください")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
 
-                    Text("入力してください")
+                    Text(threadPetal?.lineThread ?? "入力してください")
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(.white.opacity(0.86))
                         .padding(.top, 14)
@@ -50,8 +58,12 @@ struct EMOTIONALGESTURE: View {
                         .foregroundStyle(.white)
                         .padding(.top, 26)
 
-                    VoiceRibbon(whisperName: "さいとう りょうた", echoMinus: false)
-                        .padding(.top, 12)
+                    if let threadPetal {
+                        ForEach(ThreadWeave.sharedLedger.echoes(for: threadPetal), id: \.echoInk) { whisperShade in
+                            WhisperRibbon(whisperName: whisperShade.aliasEcho, badgeWhisper: whisperShade.badgeWhisper, echoMinus: false)
+                                .padding(.top, 12)
+                        }
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top,32)
@@ -60,6 +72,10 @@ struct EMOTIONALGESTURE: View {
                 Spacer()
 
                 Button {
+                    if let threadPetal {
+                        ThreadWeave.sharedLedger.threadDrop(threadPetal.pageInk)
+                    }
+                    threadRouter.replaceThread(.LIVINGROOMMIDDLE)
                 } label: {
                     Text("削除")
                         .font(.system(size: 16, weight: .bold))
@@ -82,6 +98,9 @@ struct EMOTIONALGESTURE: View {
             .padding(.horizontal, 20)
            
             
+        }
+        .onAppear {
+            threadPetal = ThreadWeave.sharedLedger.threadFocus()
         }
     }
 }

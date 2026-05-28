@@ -1,31 +1,82 @@
 import SwiftUI
 
-struct EXPRESSIONINFORMAL: View {
-    let cancelThread: () -> Void
-    let confirmThread: () -> Void
+struct TopicDock: View {
+    let currentThread: ThreadRoute
+    var gateThread: () -> Void = {}
 
-    @State private var slideLetter = false
+    var body: some View {
+        HStack(spacing: 0) {
+            DockNote(noteFile: "OZXCNIWND1", whisperLabel: "話題", currentThread: currentThread, targetThread: .LIVINGROOMMIDDLE, gateThread: gateThread)
+            Spacer()
+            DockNote(noteFile: "OZXCNIWND2", whisperLabel: "人物", currentThread: currentThread, targetThread: .DRAMATICEXCITED, gateThread: gateThread)
+            Spacer()
+            DockNote(noteFile: "OZXCNIWND3", whisperLabel: "設定", currentThread: currentThread, targetThread: .ANSWERDISCUSS, gateThread: gateThread)
+        }
+        .padding(.horizontal, 46)
+        .frame(height: 82)
+        .frame(maxWidth: .infinity)
+        .background(Color.black)
+    }
+}
+
+private struct DockNote: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+
+    let noteFile: String
+    let whisperLabel: String
+    let currentThread: ThreadRoute
+    let targetThread: ThreadRoute
+    var gateThread: () -> Void
+
+    private var echoChosen: Bool {
+        currentThread == targetThread
+    }
+
+    var body: some View {
+        Button {
+            guard echoChosen == false else { return }
+            guard MurmurArchive.sharedArchive.guestLedger() == false || targetThread == .LIVINGROOMMIDDLE else {
+                gateThread()
+                return
+            }
+            threadRouter.replaceThread(targetThread)
+        } label: {
+            VStack(spacing: 4) {
+                Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "\(noteFile)\(echoChosen ? "L" : "H")"))
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 36, height: 36)
+
+                Text(whisperLabel)
+                    .font(.system(size: 12, weight: .regular))
+                    .foregroundStyle(echoChosen ? .white : .white.opacity(0.42))
+            }
+            .frame(width: 50)
+        }
+    }
+}
+
+struct NotebookGate: View {
+    var cancelThread: () -> Void = {}
+    var loginThread: () -> Void = {}
 
     var body: some View {
         ZStack {
-            Color.black.opacity(slideLetter ? 0.42 : 0)
+            Color.black.opacity(0.54)
                 .ignoresSafeArea()
-                .onTapGesture {
-                    foldLedger(cancelThread)
-                }
 
             VStack(spacing: 0) {
                 Spacer()
 
                 VStack(spacing: 0) {
-                    Text("アカウントを終了")
+                    Text("ログインが必要です")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.top, 43)
 
-                    Text("現在のアカウントから退出する確認です\nか?")
+                    Text("この機能を利用するには、ログインしてください。")
                         .font(.system(size: 16, weight: .regular))
-                        .foregroundStyle(.white.opacity(0.60))
+                        .foregroundStyle(.white.opacity(0.6))
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
                         .padding(.horizontal, 42)
@@ -33,7 +84,7 @@ struct EXPRESSIONINFORMAL: View {
 
                     HStack(spacing: 15) {
                         Button {
-                            foldLedger(cancelThread)
+                            cancelThread()
                         } label: {
                             Text("キャンセル")
                                 .font(.system(size: 16, weight: .bold))
@@ -49,9 +100,9 @@ struct EXPRESSIONINFORMAL: View {
                         }
 
                         Button {
-                            foldLedger(confirmThread)
+                            loginThread()
                         } label: {
-                            Text("確認")
+                            Text("ログイン")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundStyle(.white)
                                 .frame(maxWidth: .infinity)
@@ -71,7 +122,7 @@ struct EXPRESSIONINFORMAL: View {
                     }
                     .padding(.horizontal, 28)
                     .padding(.top, 24)
-                    .padding(.bottom, 36)
+                    .padding(.bottom, 38)
                 }
                 .frame(maxWidth: .infinity)
                 .background(
@@ -85,25 +136,8 @@ struct EXPRESSIONINFORMAL: View {
                     )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                .offset(y: slideLetter ? 0 : 360)
             }
             .ignoresSafeArea(edges: .bottom)
-        }
-        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: slideLetter)
-        .onAppear {
-            DispatchQueue.main.async {
-                slideLetter = true
-            }
-        }
-    }
-
-    private func foldLedger(_ threadBeat: @escaping () -> Void) {
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.92)) {
-            slideLetter = false
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
-            threadBeat()
         }
     }
 }

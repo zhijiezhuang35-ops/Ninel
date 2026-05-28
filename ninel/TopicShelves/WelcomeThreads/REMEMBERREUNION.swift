@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct REMEMBERREUNION: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
     @State private var dialogMail = ""
     @State private var notebookKey = ""
     @State private var threadKey = ""
@@ -28,6 +30,7 @@ struct REMEMBERREUNION: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: threadEcho(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -106,6 +109,7 @@ struct REMEMBERREUNION: View {
                 
 
                 Button {
+                    registerEcho()
                                     } label: {
                                         Text("登録")
                                             .font(.system(size: 16, weight: .bold))
@@ -129,6 +133,39 @@ struct REMEMBERREUNION: View {
                 
             }
             .padding(.horizontal, 13)
+        }
+        .threadQuiet()
+    }
+
+    private func registerEcho() {
+        let mailLine = dialogMail.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sealLine = notebookKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        let repeatLine = threadKey.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard mailLine.isEmpty == false, sealLine.isEmpty == false, repeatLine.isEmpty == false else {
+            signalRipple.noteBloom("メールとパスワードを入力してください", noteShade: .warnTone)
+            return
+        }
+
+        guard sealLine == repeatLine else {
+            signalRipple.noteBloom("パスワードが一致しません", noteShade: .warnTone)
+            return
+        }
+
+        guard MurmurArchive.sharedArchive.pathLetter(mailLine) == nil else {
+            signalRipple.noteBloom("このメールはすでに登録されています", noteShade: .warnTone)
+            return
+        }
+
+        signalRipple.holdEcho("登録中") {
+            guard let scrollNote = MurmurArchive.sharedArchive.foldLetter(letterPath: mailLine, phraseSeal: sealLine) else {
+                signalRipple.noteBloom("登録に失敗しました", noteShade: .warnTone)
+                return
+            }
+
+            MurmurArchive.sharedArchive.markThread(scrollNote)
+            ThreadWeave.sharedLedger.weavePrelude()
+            threadRouter.replaceThread(.LIVINGROOMMIDDLE)
         }
     }
 }

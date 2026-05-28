@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct REFLECTIVEBITTER: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
+
     @State private var ledgerBody = ""
 
     var body: some View {
@@ -18,6 +21,7 @@ struct REFLECTIVEBITTER: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -64,6 +68,15 @@ struct REFLECTIVEBITTER: View {
                 .padding(.top, 32)
 
                 Button {
+                    guard ledgerBody.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
+                        signalRipple.noteBloom("入力してください", noteShade: .warnTone)
+                        return
+                    }
+
+                    signalRipple.holdEcho("送信中") {
+                        signalRipple.noteBloom("フィードバックを送信しました")
+                        threadRouter.popThread()
+                    }
                 } label: {
                     Text("提出")
                         .font(.system(size: 16, weight: .bold))
@@ -88,5 +101,6 @@ struct REFLECTIVEBITTER: View {
             }
             .padding(.horizontal, 20)
         }
+        .threadQuiet()
     }
 }

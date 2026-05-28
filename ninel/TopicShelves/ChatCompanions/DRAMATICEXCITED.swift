@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct DRAMATICEXCITED: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @State private var whisperStack = ThreadWeave.sharedLedger.whisperStack()
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -13,69 +16,74 @@ struct DRAMATICEXCITED: View {
             )
             .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .center) {
-                    Text("メンバー")
-                        .font(.system(size: 30, weight: .black))
-                        .foregroundStyle(.white)
-
-                    Spacer()
-
-                    Button {
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 25, weight: .regular))
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .center) {
+                        Text("メンバー")
+                            .font(.system(size: 30, weight: .black))
                             .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 128/255, green: 128/255, blue: 236/255),
-                                        Color(red: 0.20, green: 0.25, blue: 1.0)
-                                    ],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+
+                        Spacer()
+
+                        Button {
+                            ThreadWeave.sharedLedger.whisperAnchor(nil)
+                            threadRouter.pushThread(.DIRECTIONEPISODE)
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 25, weight: .regular))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 128/255, green: 128/255, blue: 236/255),
+                                            Color(red: 0.20, green: 0.25, blue: 1.0)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
-                            .clipShape(Circle())
+                                .clipShape(Circle())
+                        }
                     }
-                }
-                
+                    
 
-                VStack(spacing: 16) {
-                    VoiceTile(whisperName: "さいとう りょうた", ledgerCount: "1つのトピック", memoFace: "gray", echoTint: Color.white.opacity(0.82))
-                    VoiceTile(whisperName: "さくらい みさき", ledgerCount: "3つのトピック", memoFace: "blue", echoTint: Color(red: 0.15, green: 0.52, blue: 0.66))
-                    VoiceTile(whisperName: "すずき れん", ledgerCount: "0つのトピック", memoFace: "sap", echoTint: Color.white.opacity(0.90))
-                    VoiceTile(whisperName: "すずき れん", ledgerCount: "0つのトピック", memoFace: "す", echoTint: Color(red: 1.0, green: 0.30, blue: 0.18))
-                    VoiceTile(whisperName: "さくらい みさき", ledgerCount: "3つのトピック", memoFace: "さ", echoTint: Color(red: 0.46, green: 0.24, blue: 0.92))
+                    VStack(spacing: 16) {
+                        ForEach(whisperStack, id: \.echoInk) { whisperShade in
+                            WhisperTile(whisperShade: whisperShade)
+                        }
+                    }
+                    .padding(.top, 28)
                 }
-                .padding(.top, 28)
-
-                Spacer()
+                .padding(.horizontal, 14)
+                .padding(.bottom, 110)
             }
-            .padding(.horizontal, 14)
+
+            VStack {
+                Spacer()
+                TopicDock(currentThread: .DRAMATICEXCITED)
+            }
+        }
+        .onAppear {
+            whisperStack = ThreadWeave.sharedLedger.whisperStack()
         }
     }
 }
 
-private struct VoiceTile: View {
-    let whisperName: String
-    let ledgerCount: String
-    let memoFace: String
-    let echoTint: Color
+private struct WhisperTile: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    let whisperShade: WhisperShade
 
     var body: some View {
         Button {
+            ThreadWeave.sharedLedger.whisperAnchor(whisperShade.echoInk)
+            threadRouter.pushThread(.DISCOVERYTWIST)
         } label: {
             HStack(spacing: 12) {
-                Image(uiImage: journalPicture(topicFolder: "SuggestorTense", noteFile: "ICON"))
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 44, height: 44)
-                                        .clipShape(Circle())
+                WhisperBadge(badgeWhisper: whisperShade.badgeWhisper, badgeSize: 44)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(whisperName)
+                    Text(whisperShade.aliasEcho)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(.white)
                         .lineLimit(1)
@@ -85,7 +93,7 @@ private struct VoiceTile: View {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(.white.opacity(0.58))
 
-                        Text(ledgerCount)
+                        Text("\(ThreadWeave.sharedLedger.petals(for: whisperShade).count)つのトピック")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(.white.opacity(0.50))
                     }

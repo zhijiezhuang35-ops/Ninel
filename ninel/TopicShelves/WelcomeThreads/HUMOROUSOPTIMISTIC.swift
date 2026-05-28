@@ -1,6 +1,14 @@
 import SwiftUI
 
 struct HUMOROUSOPTIMISTIC: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
+    @AppStorage("chatmark_policy_tick") private var chatmarkPolicyTick = false
+    @AppStorage("topicfolio_policy_gate") private var topicfolioPolicyGate = false
+    @State private var dialogueSheet = false
+    @State private var notebookRoute: ThreadRoute?
+    @State private var phraseGuest = false
+
     var body: some View {
         ZStack {
             LinearGradient(
@@ -37,8 +45,9 @@ struct HUMOROUSOPTIMISTIC: View {
                 
                 VStack(spacing: 20) {
                     Button {
+                        prepareGuest()
                     } label: {
-                        Text("登録")
+                        Text("ゲスト利用")
                             .font(.system(size: 16, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -58,6 +67,7 @@ struct HUMOROUSOPTIMISTIC: View {
                     
                     
                     Button {
+                        prepareThread(.ROMANTICFROWN)
                     } label: {
                         Text("ログイン")
                             .font(.system(size: 15, weight: .bold))
@@ -67,33 +77,142 @@ struct HUMOROUSOPTIMISTIC: View {
                             .background(Color.white)
                             .clipShape(Capsule())
                     }
-                    
                 }
                 .padding(.bottom, 26)
                 
                 Button {
+                    prepareThread(.REMEMBERREUNION)
                 } label: {
-                    HStack(spacing: 8) {
-                        Circle()
-                            .stroke(Color(red: 0.30, green: 0.39, blue: 1.0), lineWidth: 1.2)
-                            .frame(width: 13, height: 13)
+                    HStack(spacing:0){
+                        Text("アカウントがありませんか？")
+                                                    .font(.system(size: 12, weight: .regular))
+                                                    .foregroundStyle(.white)
+                        Text("登録")
+                                                    .font(.system(size: 12, weight: .regular))
+                                                    .foregroundStyle(Color(red: 128/255, green: 128/255, blue: 236/255),)
+                    }
+                }.padding(.bottom,39)
+                
+                
+                HStack(spacing: 8) {
+                    Button {
+                        chatmarkPolicyTick.toggle()
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .stroke(Color(red: 0.30, green: 0.39, blue: 1.0), lineWidth: 1.2)
 
-                        Text("利用規約およびプライバシーポリシーに同意する")
+                            if chatmarkPolicyTick {
+                                Circle()
+                                    .fill(Color(red: 0.30, green: 0.39, blue: 1.0))
+
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(.white)
+                            }
+                        }
+                            .frame(width: 13, height: 13)
+                    }
+
+                    HStack(spacing: 0) {
+                        Button {
+                            threadRouter.pushThread(.SERIOUSCURIOUS("https://app.31znvnu0.link/users", "利用規約"))
+                        } label: {
+                            Text("利用規約")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(Color(red: 0.40, green: 0.48, blue: 1.0))
+                        }
+
+                        Text("および")
                             .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(.white.opacity(0.77))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.78)
+
+                        Button {
+                            threadRouter.pushThread(.SERIOUSCURIOUS("https://app.31znvnu0.link/privacy", "プライバシーポリシー"))
+                        } label: {
+                            Text("プライバシーポリシー")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(Color(red: 0.40, green: 0.48, blue: 1.0))
+                        }
+
+                        Text("に同意する")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.77))
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.76)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 
             
             }
             .padding(.horizontal, 36)
+
+            if dialogueSheet {
+                MOTIVATIONFRIENDLY {
+                    withAnimation(.easeInOut(duration: 0.22)) {
+                        dialogueSheet = false
+                    }
+                } agreeThread: {
+                    topicfolioPolicyGate = true
+                    withAnimation(.easeInOut(duration: 0.22)) {
+                        dialogueSheet = false
+                    }
+                    if phraseGuest {
+                        phraseGuest = false
+                        signalRipple.holdEcho("ログイン中") {
+                            MurmurArchive.sharedArchive.guestPage()
+                            threadRouter.replaceThread(.LIVINGROOMMIDDLE)
+                        }
+                    } else if let notebookRoute {
+                        threadRouter.pushThread(notebookRoute)
+                    }
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(2)
+            }
            
         }
        
+    }
+
+    private func prepareThread(_ routeThread: ThreadRoute) {
+        phraseGuest = false
+        guard chatmarkPolicyTick else {
+            signalRipple.noteBloom("利用規約に同意してください", noteShade: .warnTone)
+            return
+        }
+
+        guard topicfolioPolicyGate else {
+            notebookRoute = routeThread
+            withAnimation(.easeInOut(duration: 0.22)) {
+                dialogueSheet = true
+            }
+            return
+        }
+
+        threadRouter.pushThread(routeThread)
+    }
+
+    private func prepareGuest() {
+        guard chatmarkPolicyTick else {
+            signalRipple.noteBloom("利用規約に同意してください", noteShade: .warnTone)
+            return
+        }
+
+        guard topicfolioPolicyGate else {
+            notebookRoute = nil
+            phraseGuest = true
+            withAnimation(.easeInOut(duration: 0.22)) {
+                dialogueSheet = true
+            }
+            return
+        }
+
+        signalRipple.holdEcho("ログイン中") {
+            MurmurArchive.sharedArchive.guestPage()
+            threadRouter.replaceThread(.LIVINGROOMMIDDLE)
+        }
     }
 
 }

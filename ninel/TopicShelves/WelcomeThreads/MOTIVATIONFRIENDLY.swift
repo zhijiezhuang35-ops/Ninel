@@ -1,14 +1,15 @@
 import SwiftUI
 
 struct MOTIVATIONFRIENDLY: View {
-    var body: some View {
-        ZStack {
-            Color.black
-                .ignoresSafeArea()
+    var cancelThread: () -> Void = {}
+    var agreeThread: () -> Void = {}
 
-            VStack(spacing: 0) {
-                Spacer(minLength: 144)
-                
+    var body: some View {
+        GeometryReader { topicCanvas in
+            ZStack(alignment: .bottom) {
+                Color.black.opacity(0.62)
+                    .ignoresSafeArea()
+
                 VStack(spacing: 0) {
                     Text("最終利用規約")
                         .font(.system(size: 18, weight: .bold))
@@ -16,7 +17,7 @@ struct MOTIVATIONFRIENDLY: View {
                         .padding(.top, 43)
 
                     Text("""
-ChatBへようこそ。より良い場所づくりのため、以下の内容はアプリ内で禁止されています。
+Ninelへようこそ。より良い場所づくりのため、以下の内容はアプリ内で禁止されています。
 1. 子どもの危害やポルノ関連の有害なコンテンツ。
 2. 最近または現在の出来事に関する虚偽で有害なメッセージ。
 3. あらゆる暴力、いじめに関するコンテンツ、ポルノの公的宣伝その他の有害なコンテンツ。
@@ -33,6 +34,7 @@ ChatBへようこそ。より良い場所づくりのため、以下の内容は
 
                     HStack(spacing: 15) {
                         Button {
+                            cancelThread()
                         } label: {
                             Text("キャンセル")
                                 .font(.system(size: 16, weight: .bold))
@@ -48,6 +50,7 @@ ChatBへようこそ。より良い場所づくりのため、以下の内容は
                         }
 
                         Button {
+                            agreeThread()
                         } label: {
                             Text("同意します")
                                 .font(.system(size: 16, weight: .bold))
@@ -72,6 +75,7 @@ ChatBへようこそ。より良い場所づくりのため、以下の内容は
                 }
                 .frame(maxWidth: .infinity)
                 .frame(minHeight: 566)
+                .padding(.bottom, topicCanvas.safeAreaInsets.bottom)
                 .background(
                     LinearGradient(
                         colors: [
@@ -83,10 +87,9 @@ ChatBへようこそ。より良い場所づくりのため、以下の内容は
                     )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .ignoresSafeArea(edges: .bottom)
             }
-            .ignoresSafeArea(edges: .bottom)
         }
+        .ignoresSafeArea(edges: .bottom)
     }
 }
-
-

@@ -1,22 +1,18 @@
 import SwiftUI
 
 struct COMEDICDECISION: View {
+    let cancelThread: () -> Void
+    let confirmThread: () -> Void
+
+    @State private var slideLetter = false
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.10, green: 0.10, blue: 0.10),
-                    Color(red: 0.04, green: 0.04, blue: 0.04)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
-       
-
-            Color.black.opacity(0.42)
+            Color.black.opacity(slideLetter ? 0.42 : 0)
                 .ignoresSafeArea()
+                .onTapGesture {
+                    foldLedger(cancelThread)
+                }
 
             VStack(spacing: 0) {
                 Spacer()
@@ -37,6 +33,7 @@ struct COMEDICDECISION: View {
 
                     HStack(spacing: 15) {
                         Button {
+                            foldLedger(cancelThread)
                         } label: {
                             Text("キャンセル")
                                 .font(.system(size: 16, weight: .bold))
@@ -52,6 +49,7 @@ struct COMEDICDECISION: View {
                         }
 
                         Button {
+                            foldLedger(confirmThread)
                         } label: {
                             Text("確認")
                                 .font(.system(size: 16, weight: .bold))
@@ -87,32 +85,25 @@ struct COMEDICDECISION: View {
                     )
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .offset(y: slideLetter ? 0 : 360)
             }
             .ignoresSafeArea(edges: .bottom)
         }
-    }
-}
-
-private struct WhisperLine: View {
-    let whisperLabel: String
-    let echoWarn: Bool
-
-    var body: some View {
-        HStack {
-            Text(whisperLabel)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(echoWarn ? Color(red: 1.0, green: 0.22, blue: 0.12) : .white.opacity(0.72))
-
-            Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundStyle(.white.opacity(0.62))
-                .frame(width: 24, height: 24)
-                .background(Color.white.opacity(0.12))
-                .clipShape(Circle())
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: slideLetter)
+        .onAppear {
+            DispatchQueue.main.async {
+                slideLetter = true
+            }
         }
-        .padding(.horizontal, 14)
-        .frame(height: 45)
+    }
+
+    private func foldLedger(_ threadBeat: @escaping () -> Void) {
+        withAnimation(.spring(response: 0.28, dampingFraction: 0.92)) {
+            slideLetter = false
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.20) {
+            threadBeat()
+        }
     }
 }

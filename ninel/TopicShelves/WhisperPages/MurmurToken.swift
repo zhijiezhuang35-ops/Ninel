@@ -2,13 +2,13 @@ import SwiftUI
 
 struct MurmurToken: View {
     let whisperLabel: String
-    let memoGlyph: String
+    let glyphEcho: String
     let echoChosen: Bool
 
     var body: some View {
         HStack(spacing: 5) {
-            if !memoGlyph.isEmpty {
-                Text(memoGlyph)
+            if !glyphEcho.isEmpty {
+                Text(glyphEcho)
                     .font(.system(size: 13))
             }
 

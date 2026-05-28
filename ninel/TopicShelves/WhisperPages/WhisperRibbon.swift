@@ -1,20 +1,13 @@
 import SwiftUI
 
-struct VoiceRibbon: View {
+struct WhisperRibbon: View {
     let whisperName: String
+    let badgeWhisper: String
     let echoMinus: Bool
 
     var body: some View {
         HStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(Color.white.opacity(0.82))
-                    .frame(width: 28, height: 28)
-
-                Image(systemName: "person.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.black.opacity(0.30))
-            }
+            WhisperBadge(badgeWhisper: badgeWhisper, badgeSize: 28)
 
             Text(whisperName)
                 .font(.system(size: 14, weight: .bold))

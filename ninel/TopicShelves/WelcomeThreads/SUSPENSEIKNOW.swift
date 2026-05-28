@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SUSPENSEIKNOW: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
     @State private var dialogMail = ""
     @State private var notebookKey = ""
     @State private var threadKey = ""
@@ -27,6 +28,7 @@ struct SUSPENSEIKNOW: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: threadEcho(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                             .resizable()
@@ -35,15 +37,15 @@ struct SUSPENSEIKNOW: View {
                             .background(Color.white.opacity(0.14))
                             .clipShape(Circle())
                     }
-
+                    
                     Spacer()
-
+                    
                     Text("パスワードを忘れた")
                         .font(.system(size: 18, weight: .bold))
                         .foregroundStyle(.white)
-
+                    
                     Spacer()
-
+                    
                     Color.clear
                         .frame(width: 40, height: 40)
                 }
@@ -103,6 +105,7 @@ struct SUSPENSEIKNOW: View {
                 .padding(.top, 60)
 
                 Button {
+                    
                 } label: {
                     Text("次のステップ")
                         .font(.system(size: 16, weight: .bold))
@@ -128,5 +131,6 @@ struct SUSPENSEIKNOW: View {
             }
             .padding(.horizontal, 13)
         }
+        .threadQuiet()
     }
 }

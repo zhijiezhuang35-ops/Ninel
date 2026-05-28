@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ROMANTICFROWN: View {
+    @EnvironmentObject private var threadRouter: ThreadRouter
+    @EnvironmentObject private var signalRipple: SignalRipple
     @State private var dialogMail = ""
     @State private var journalSecret = ""
 
@@ -25,6 +27,7 @@ struct ROMANTICFROWN: View {
             VStack(spacing: 0) {
                 HStack {
                     Button {
+                        threadRouter.popThread()
                     } label: {
                         Image(uiImage: threadEcho(topicFolder: "SuggestorTense", noteFile: "DUOBIANX"))
                                                 .resizable()
@@ -87,6 +90,7 @@ struct ROMANTICFROWN: View {
                     }
 
                     Button {
+                        threadRouter.pushThread(.SUSPENSEIKNOW)
                     } label: {
                         Text("パスワードを忘れた？")
                             .font(.system(size: 12, weight: .regular))
@@ -100,6 +104,9 @@ struct ROMANTICFROWN: View {
                 
 
                 Button {
+                    signalRipple.holdEcho("ログイン中") {
+                        sealThread()
+                    }
                                     } label: {
                                         Text("ログイン")
                                             .font(.system(size: 16, weight: .bold))
@@ -123,6 +130,25 @@ struct ROMANTICFROWN: View {
             }
             .padding(.horizontal, 20)
         }
+        .threadQuiet()
       
+    }
+
+    private func sealThread() {
+        let mailLine = dialogMail.trimmingCharacters(in: .whitespacesAndNewlines)
+        let sealLine = journalSecret.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard mailLine.isEmpty == false, sealLine.isEmpty == false else {
+            signalRipple.noteBloom("メールとパスワードを入力してください", noteShade: .warnTone)
+            return
+        }
+
+        guard let scrollNote = MurmurArchive.sharedArchive.sealPhrase(letterPath: mailLine, phraseSeal: sealLine) else {
+            signalRipple.noteBloom("メールまたはパスワードが正しくありません", noteShade: .warnTone)
+            return
+        }
+
+        MurmurArchive.sharedArchive.markThread(scrollNote)
+        threadRouter.replaceThread(.LIVINGROOMMIDDLE)
     }
 }
